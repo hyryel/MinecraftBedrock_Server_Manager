@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Minecraft_Bedrock_server_Wrapper"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded" Closed="Window_Closed">
+        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded" >
     <Grid>
         <DockPanel LastChildFill="True">
             <Menu DockPanel.Dock="Top" Height="24">
@@ -15,8 +15,7 @@
                 <MenuItem Header="_Commands">
                     <MenuItem Header="Stop server" Click="MnuStopServer_Click" />
                 </MenuItem>
-                <MenuItem>
-                </MenuItem>
+                <MenuItem IsCheckable="True" Template="{DynamicResource PlayStopMenuItem}" Checked="MenuItem_Checked" Unchecked="MenuItem_Unchecked" />
             </Menu>
             <ListBox  x:Name="lstInfo" ItemsSource="{Binding}">
                 <ListBox.ItemTemplate>

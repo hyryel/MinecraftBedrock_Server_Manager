@@ -42,7 +42,6 @@ namespace Minecraft_Bedrock_server_Wrapper
             lstInfo.DataContext = _infos;
             _server = new ServerManager("G:\\jeux\\Minecraft bedrock serveur\\bedrock_server.exe");
             _server.StateUpdated += _server_StateUpdated;
-            _server.Start();
         }
 
         private void _server_StateUpdated(object sender,ServerUpdatedEventArgs e)
@@ -50,11 +49,14 @@ namespace Minecraft_Bedrock_server_Wrapper
             _infos.Add(e.Message);
         }
 
-        private void Window_Closed(object sender, EventArgs e)
+        private void MenuItem_Checked(object sender, RoutedEventArgs e)
         {
-
+            _server.Start();
         }
 
-
+        private void MenuItem_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _server.Stop();
+        }
     }
 }
