@@ -31,8 +31,9 @@ namespace Minecraft_Bedrock_server_Wrapper
 
         private StreamWriter _inputWriter;
         private Process _server;
-
         private SynchronizationContext _context;
+        private bool _isStarted = false;
+
         public ServerManager(string executablePath)
         {
             _context = SynchronizationContext.Current ?? new SynchronizationContext();
@@ -41,32 +42,47 @@ namespace Minecraft_Bedrock_server_Wrapper
 
         public void Start()
         {
-            _server = new System.Diagnostics.Process();
-            System.Diagnostics.ProcessStartInfo si = new System.Diagnostics.ProcessStartInfo(ExecutablePath)
+            if (_server == null)
             {
-                CreateNoWindow = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false
-            };
 
-            _server.StartInfo = si;
-            _server.ErrorDataReceived += _server_ErrorDataReceived;
-            _server.OutputDataReceived += _server_OutputDataReceived;
+                _server = new System.Diagnostics.Process();
+                System.Diagnostics.ProcessStartInfo si = new System.Diagnostics.ProcessStartInfo(ExecutablePath)
+                {
+                    CreateNoWindow = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false
+                };
 
-            _server.Start();
+                _server.StartInfo = si;
+                _server.ErrorDataReceived += _server_ErrorDataReceived;
+                _server.OutputDataReceived += _server_OutputDataReceived;
+
+            }
+            _isStarted = _server.Start();
             _inputWriter = _server.StandardInput;
             _server.BeginOutputReadLine();
             _server.BeginErrorReadLine();
         }
-
+        public void Stop()
+        {
+            if (_isStarted)
+            {
+                SendCommand("stop");
+                System.Threading.Thread.Sleep(500);
+                _server.CancelErrorRead();
+                _server.CancelOutputRead();
+                _server.Close();
+                _isStarted = false;
+            }
+        }
         public event EventHandler<ServerUpdatedEventArgs> StateUpdated;
 
         private void MySendOrPostCallback(object state)
         {
-            DataReceivedInfo data = (DataReceivedInfo) state;
-            StateUpdated?.Invoke(this, new ServerUpdatedEventArgs { Message = data.Data, MessageType = data.MsgType } );
+            DataReceivedInfo data = (DataReceivedInfo)state;
+            StateUpdated?.Invoke(this, new ServerUpdatedEventArgs { Message = data.Data, MessageType = data.MsgType });
         }
 
         private void _server_ErrorDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)
@@ -92,15 +108,7 @@ namespace Minecraft_Bedrock_server_Wrapper
             if (!_disposed)
             {
                 _disposed = true;
-                if (_server != null)
-                {
-                    _server.CancelErrorRead();
-                    _server.CancelOutputRead();
-                    if (!_server.HasExited)
-                    {
-                        _server.Kill();
-                    }
-                }
+                Stop();
             }
         }
     }
